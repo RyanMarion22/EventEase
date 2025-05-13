@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using EventEase.Data;
+﻿using EventEase.Data;
 using EventEase.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace EventEase.Controllers
 {
@@ -33,14 +29,14 @@ namespace EventEase.Controllers
                 return NotFound();
             }
 
-            var @event = await _context.Event
+            var eventEntity = await _context.Event
                 .FirstOrDefaultAsync(m => m.EventID == id);
-            if (@event == null)
+            if (eventEntity == null)
             {
                 return NotFound();
             }
 
-            return View(@event);
+            return View(eventEntity);
         }
 
         // GET: Events/Create
@@ -50,19 +46,17 @@ namespace EventEase.Controllers
         }
 
         // POST: Events/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("EventID,EventName,EventDate,EventDescription")] Event @event)
+        public async Task<IActionResult> Create([Bind("EventID,EventName,EventDate,EventDescription")] Event eventEntity)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(@event);
+                _context.Add(eventEntity);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(@event);
+            return View(eventEntity);
         }
 
         // GET: Events/Edit/5
@@ -73,22 +67,20 @@ namespace EventEase.Controllers
                 return NotFound();
             }
 
-            var @event = await _context.Event.FindAsync(id);
-            if (@event == null)
+            var eventEntity = await _context.Event.FindAsync(id);
+            if (eventEntity == null)
             {
                 return NotFound();
             }
-            return View(@event);
+            return View(eventEntity);
         }
 
         // POST: Events/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("EventID,EventName,EventDate,EventDescription")] Event @event)
+        public async Task<IActionResult> Edit(int id, [Bind("EventID,EventName,EventDate,EventDescription")] Event eventEntity)
         {
-            if (id != @event.EventID)
+            if (id != eventEntity.EventID)
             {
                 return NotFound();
             }
@@ -97,12 +89,12 @@ namespace EventEase.Controllers
             {
                 try
                 {
-                    _context.Update(@event);
+                    _context.Update(eventEntity);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!EventExists(@event.EventID))
+                    if (!EventExists(eventEntity.EventID))
                     {
                         return NotFound();
                     }
@@ -113,7 +105,7 @@ namespace EventEase.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(@event);
+            return View(eventEntity);
         }
 
         // GET: Events/Delete/5
@@ -124,30 +116,38 @@ namespace EventEase.Controllers
                 return NotFound();
             }
 
-            var @event = await _context.Event
+            var eventEntity = await _context.Event
                 .FirstOrDefaultAsync(m => m.EventID == id);
-            if (@event == null)
+            if (eventEntity == null)
             {
                 return NotFound();
             }
 
-            return View(@event);
+            return View(eventEntity);
         }
-
-        // POST: Events/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var @event = await _context.Event.FindAsync(id);
-            if (@event != null)
+            var eventEntity = await _context.Event.FindAsync(id);
+            if (eventEntity == null)
             {
-                _context.Event.Remove(@event);
+                return NotFound();
             }
 
+            // Check for active bookings
+            bool hasBookings = await _context.Booking.AnyAsync(b => b.EventID == id);
+            if (hasBookings)
+            {
+                TempData["Error"] = "Cannot delete event because it has active bookings.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            _context.Event.Remove(eventEntity);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+
 
         private bool EventExists(int id)
         {

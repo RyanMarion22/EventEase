@@ -1,47 +1,106 @@
 ﻿@model IEnumerable<EventEase.Models.Booking>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Bookings List";
 }
 
-<h1>Index</h1>
+@section Styles {
+    <style>
+        /* Custom table style */
+        .custom-table {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.BookingDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Venue)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Event)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.BookingDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Venue.VenueID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Event.EventID)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.BookingID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.BookingID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.BookingID">Delete</a>
-            </td>
-        </tr>
+            .custom-table thead {
+                background-color: #343a40;
+                color: white;
+            }
+
+            .custom-table tbody tr {
+                background-color: #ffffff;
+                transition: background-color 0.2s ease;
+            }
+
+                .custom-table tbody tr:hover {
+                    background-color: #e9ecef;
+                }
+
+            .custom-table td, .custom-table th {
+                border: 1px solid #dee2e6;
+                padding: 0.75rem;
+                vertical-align: middle;
+            }
+    </style>
 }
-    </tbody>
-</table>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6 mb-0">Bookings</h1>
+        <a asp-action="Create" class="btn btn-outline-primary">+ New Booking</a>
+    </div>
+
+    <!-- Search Forms -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-2">
+            <form asp-action="Index" method="get">
+                <div class="input-group">
+                    <input type="text" name="searchEventName" class="form-control" placeholder="Search by Event Name"
+                           value="@ViewData["CurrentFilter"]" />
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-6 mb-2">
+            <form asp-action="SearchByBookingId" method="get">
+                <div class="input-group">
+                    <input type="number" name="searchString" class="form-control" placeholder="Search by Booking ID"
+                           value="@ViewData["CurrentFilter"]" />
+                    <button type="submit" class="btn btn-success">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bookings Table -->
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover table-striped custom-table mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Event</th>
+                        <th scope="col">Venue</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var booking in Model)
+                        {
+                            <tr>
+                                <td>@booking.BookingID</td>
+                                <td>@booking.Event?.EventName</td>
+                                <td>@booking.Venue?.VenueName</td>
+                                <td>@booking.BookingDate.ToString("f")</td>
+                                <td>
+                                    <a asp-action="Edit" asp-route-id="@booking.BookingID" class="btn btn-sm btn-outline-warning">Edit</a>
+                                    <a asp-action="Details" asp-route-id="@booking.BookingID" class="btn btn-sm btn-outline-info">Details</a>
+                                    <a asp-action="Delete" asp-route-id="@booking.BookingID" class="btn btn-sm btn-outline-danger">Delete</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">No bookings found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
