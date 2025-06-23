@@ -25,6 +25,19 @@
                 </div>
 
                 <div class="mb-3">
+                    <label asp-for="EventType" class="form-label">Event Type</label>
+                    <select asp-for="EventType" class="form-select">
+                        <option value="">-- Select Event Type --</option>
+                        <option>Wedding</option>
+                        <option>Conference</option>
+                        <option>Birthday</option>
+                        <option>Concert</option>
+                        <option>Other</option>
+                    </select>
+                    <span asp-validation-for="EventType" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
                     <label asp-for="EventDescription" class="form-label"></label>
                     <textarea asp-for="EventDescription" class="form-control" rows="4"></textarea>
                     <span asp-validation-for="EventDescription" class="text-danger"></span>

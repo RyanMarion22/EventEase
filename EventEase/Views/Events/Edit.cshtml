@@ -10,25 +10,33 @@
     <div class="card shadow-sm">
         <div class="card-body">
             <form asp-action="Edit">
-                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert" style="@(ViewData.ModelState.IsValid ? "display:none;" : "")"></div>
 
                 <input type="hidden" asp-for="EventID" />
 
                 <div class="mb-3">
-                    <label asp-for="EventName" class="form-label"></label>
+                    <label asp-for="EventName" class="form-label">Event Name</label>
                     <input asp-for="EventName" class="form-control" />
                     <span asp-validation-for="EventName" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="EventDate" class="form-label"></label>
-                    <input asp-for="EventDate" class="form-control" />
+                    <label asp-for="EventDate" class="form-label">Event Date</label>
+                    <input asp-for="EventDate" class="form-control" type="datetime-local" value="@(Model?.EventDate.ToString("yyyy-MM-ddTHH:mm"))" />
                     <span asp-validation-for="EventDate" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="EventDescription" class="form-label"></label>
-                    <input asp-for="EventDescription" class="form-control" />
+                    <label asp-for="EventType" class="form-label">Event Type</label>
+                    <select asp-for="EventType" class="form-select" asp-items="@(new SelectList(new[] { "Wedding", "Conference", "Birthday", "Concert", "Other" }, Model?.EventType))">
+                        <option value="">-- Select Event Type --</option>
+                    </select>
+                    <span asp-validation-for="EventType" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="EventDescription" class="form-label">Event Description</label>
+                    <textarea asp-for="EventDescription" class="form-control" rows="4"></textarea>
                     <span asp-validation-for="EventDescription" class="text-danger"></span>
                 </div>
 

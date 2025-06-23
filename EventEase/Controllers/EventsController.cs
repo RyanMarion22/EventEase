@@ -3,6 +3,7 @@ using EventEase.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace EventEase.Controllers
 {
@@ -24,17 +25,12 @@ namespace EventEase.Controllers
         // GET: Events/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var eventEntity = await _context.Event
                 .FirstOrDefaultAsync(m => m.EventID == id);
-            if (eventEntity == null)
-            {
-                return NotFound();
-            }
+
+            if (eventEntity == null) return NotFound();
 
             return View(eventEntity);
         }
@@ -48,7 +44,7 @@ namespace EventEase.Controllers
         // POST: Events/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("EventID,EventName,EventDate,EventDescription")] Event eventEntity)
+        public async Task<IActionResult> Create([Bind("EventID,EventName,EventDate,EventDescription,EventType")] Event eventEntity)
         {
             if (ModelState.IsValid)
             {
@@ -62,28 +58,20 @@ namespace EventEase.Controllers
         // GET: Events/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var eventEntity = await _context.Event.FindAsync(id);
-            if (eventEntity == null)
-            {
-                return NotFound();
-            }
+            if (eventEntity == null) return NotFound();
+
             return View(eventEntity);
         }
 
         // POST: Events/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("EventID,EventName,EventDate,EventDescription")] Event eventEntity)
+        public async Task<IActionResult> Edit(int id, [Bind("EventID,EventName,EventDate,EventDescription,EventType")] Event eventEntity)
         {
-            if (id != eventEntity.EventID)
-            {
-                return NotFound();
-            }
+            if (id != eventEntity.EventID) return NotFound();
 
             if (ModelState.IsValid)
             {
@@ -94,14 +82,8 @@ namespace EventEase.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!EventExists(eventEntity.EventID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    if (!EventExists(eventEntity.EventID)) return NotFound();
+                    else throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -111,31 +93,24 @@ namespace EventEase.Controllers
         // GET: Events/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var eventEntity = await _context.Event
                 .FirstOrDefaultAsync(m => m.EventID == id);
-            if (eventEntity == null)
-            {
-                return NotFound();
-            }
+
+            if (eventEntity == null) return NotFound();
 
             return View(eventEntity);
         }
+
+        // POST: Events/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var eventEntity = await _context.Event.FindAsync(id);
-            if (eventEntity == null)
-            {
-                return NotFound();
-            }
+            if (eventEntity == null) return NotFound();
 
-            // Check for active bookings
             bool hasBookings = await _context.Booking.AnyAsync(b => b.EventID == id);
             if (hasBookings)
             {
@@ -147,7 +122,6 @@ namespace EventEase.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-
 
         private bool EventExists(int id)
         {

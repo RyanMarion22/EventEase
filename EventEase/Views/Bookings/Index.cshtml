@@ -6,7 +6,6 @@
 
 @section Styles {
     <style>
-        /* Custom table style */
         .custom-table {
             background-color: #f8f9fa;
             border: 1px solid #dee2e6;
@@ -40,18 +39,47 @@
         <a asp-action="Create" class="btn btn-outline-primary">+ New Booking</a>
     </div>
 
-    <!-- Search Forms -->
-    <div class="row mb-4">
-        <div class="col-md-6 mb-2">
-            <form asp-action="Index" method="get">
-                <div class="input-group">
-                    <input type="text" name="searchEventName" class="form-control" placeholder="Search by Event Name"
-                           value="@ViewData["CurrentFilter"]" />
-                    <button type="submit" class="btn btn-primary">Search</button>
+    <!-- Filters -->
+    <form asp-action="Index" method="get" class="mb-4">
+        <div class="row g-2">
+            <div class="col-md-3">
+                <input type="text" name="searchEventName" class="form-control" placeholder="Search by Event Name"
+                       value="@ViewData["CurrentFilter"]" />
+            </div>
+            <div class="col-md-2">
+                <select name="eventType" class="form-select">
+                    <option value="">All Event Types</option>
+                    @if (ViewData["EventTypeList"] is SelectList typeList)
+                    {
+                        foreach (var item in typeList)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="startDate" class="form-control" value="@ViewData["CurrentStartDate"]" />
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="endDate" class="form-control" value="@ViewData["CurrentEndDate"]" />
+            </div>
+            <div class="col-md-2">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="onlyAvailable" value="true" id="availableCheck"
+                    @(Convert.ToBoolean(ViewData["CurrentOnlyAvailable"]) ? "checked" : "") />
+                    <label class="form-check-label" for="availableCheck">Only Available Venues</label>
                 </div>
-            </form>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
         </div>
-        <div class="col-md-6 mb-2">
+    </form>
+
+    <!-- Search by Booking ID -->
+    <div class="row mb-3">
+        <div class="col-md-6">
             <form asp-action="SearchByBookingId" method="get">
                 <div class="input-group">
                     <input type="number" name="searchString" class="form-control" placeholder="Search by Booking ID"
@@ -70,6 +98,7 @@
                     <tr>
                         <th scope="col">#</th>
                         <th scope="col">Event</th>
+                        <th scope="col">Type</th>
                         <th scope="col">Venue</th>
                         <th scope="col">Date</th>
                         <th scope="col">Actions</th>
@@ -83,6 +112,7 @@
                             <tr>
                                 <td>@booking.BookingID</td>
                                 <td>@booking.Event?.EventName</td>
+                                <td>@booking.Event?.EventType</td>
                                 <td>@booking.Venue?.VenueName</td>
                                 <td>@booking.BookingDate.ToString("f")</td>
                                 <td>
@@ -96,7 +126,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="5" class="text-center text-muted py-3">No bookings found.</td>
+                            <td colspan="6" class="text-center text-muted py-3">No bookings found.</td>
                         </tr>
                     }
                 </tbody>

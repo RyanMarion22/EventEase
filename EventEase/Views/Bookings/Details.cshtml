@@ -1,80 +1,135 @@
-﻿@model EventEase.Models.Booking
+﻿@model IEnumerable<EventEase.Models.Booking>
 
 @{
-    ViewData["Title"] = "Booking Details";
+    ViewData["Title"] = "Bookings List";
 }
 
-<h1 class="text-center text-primary mt-4">Booking Details</h1>
-<hr class="bg-primary border-2 border-top border-primary" />
+@section Styles {
+    <style>
+        .custom-table {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card bg-light shadow-sm p-4">
-                @if (Model != null)
-                {
-                    <dl class="row">
-                        <dt class="col-sm-4 text-secondary fw-bold">Booking Date</dt>
-                        <dd class="col-sm-8 text-dark">@Model.BookingDate.ToString("f")</dd>
+            .custom-table thead {
+                background-color: #343a40;
+                color: white;
+            }
 
-                        <dt class="col-sm-4 text-secondary fw-bold">Venue</dt>
-                        <dd class="col-sm-8 text-dark">@Model.Venue?.VenueName </dd>
+            .custom-table tbody tr {
+                background-color: #ffffff;
+                transition: background-color 0.2s ease;
+            }
 
-                        <dt class="col-sm-4 text-secondary fw-bold">Event</dt>
-                        <dd class="col-sm-8 text-dark">@Model.Event?.EventName "</dd>
-                    </dl>
-
-                    <div class="mt-4">
-                        <a asp-action="Edit" asp-route-id="@Model.BookingID" class="btn btn-primary me-2">Edit</a>
-                        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
-                    </div>
+                .custom-table tbody tr:hover {
+                    background-color: #e9ecef;
                 }
-                else
-                {
-                    <p class="text-warning">No booking details available.</p>
-                    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
-                }
+
+            .custom-table td, .custom-table th {
+                border: 1px solid #dee2e6;
+                padding: 0.75rem;
+                vertical-align: middle;
+            }
+    </style>
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6 mb-0">Bookings</h1>
+        <a asp-action="Create" class="btn btn-outline-primary">+ New Booking</a>
+    </div>
+
+    <!-- Filters -->
+    <form asp-action="Index" method="get" class="mb-4">
+        <div class="row g-2">
+            <div class="col-md-3">
+                <input type="text" name="searchEventName" class="form-control" placeholder="Search by Event Name"
+                       value="@ViewData["CurrentFilter"]" />
             </div>
+            <div class="col-md-2">
+                <select name="eventType" class="form-select">
+                    <option value="">All Event Types</option>
+                    @if (ViewData["EventTypeList"] is SelectList typeList)
+                    {
+                        foreach (var item in typeList)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="startDate" class="form-control" />
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="endDate" class="form-control" />
+            </div>
+            <div class="col-md-2">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="onlyAvailable" value="true" id="availableCheck" />
+                    <label class="form-check-label" for="availableCheck">Only Available Venues</label>
+                </div>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Search by Booking ID -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <form asp-action="SearchByBookingId" method="get">
+                <div class="input-group">
+                    <input type="number" name="searchString" class="form-control" placeholder="Search by Booking ID"
+                           value="@ViewData["CurrentFilter"]" />
+                    <button type="submit" class="btn btn-success">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bookings Table -->
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover table-striped custom-table mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Event</th>
+                        <th scope="col">Type</th>
+                        <th scope="col">Venue</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var booking in Model)
+                        {
+                            <tr>
+                                <td>@booking.BookingID</td>
+                                <td>@booking.Event?.EventName</td>
+                                <td>@booking.Event?.EventType</td>
+                                <td>@booking.Venue?.VenueName</td>
+                                <td>@booking.BookingDate.ToString("f")</td>
+                                <td>
+                                    <a asp-action="Edit" asp-route-id="@booking.BookingID" class="btn btn-sm btn-outline-warning">Edit</a>
+                                    <a asp-action="Details" asp-route-id="@booking.BookingID" class="btn btn-sm btn-outline-info">Details</a>
+                                    <a asp-action="Delete" asp-route-id="@booking.BookingID" class="btn btn-sm btn-outline-danger">Delete</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-3">No bookings found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
-
-<style>
-    .card {
-        border-radius: 10px;
-        border: 1px solid #dee2e6;
-    }
-
-    dt {
-        background-color: #f8f9fa;
-        padding: 8px;
-        border-radius: 5px;
-    }
-
-    dd {
-        padding: 8px;
-        background-color: #ffffff;
-        border-radius: 5px;
-        margin-bottom: 10px;
-    }
-
-    .btn-primary {
-        background-color: #007bff;
-        border-color: #007bff;
-    }
-
-        .btn-primary:hover {
-            background-color: #0056b3;
-            border-color: #0056b3;
-        }
-
-    .btn-secondary {
-        background-color: #6c757d;
-        border-color: #6c757d;
-    }
-
-        .btn-secondary:hover {
-            background-color: #5a6268;
-            border-color: #5a6268;
-        }
-</style>

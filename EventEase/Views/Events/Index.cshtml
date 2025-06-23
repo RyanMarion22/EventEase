@@ -25,9 +25,10 @@
             <table class="table table-striped table-hover">
                 <thead class="table-dark">
                     <tr>
-                        <th>@Html.DisplayNameFor(model => model.EventName)</th>
-                        <th>@Html.DisplayNameFor(model => model.EventDate)</th>
-                        <th>@Html.DisplayNameFor(model => model.EventDescription)</th>
+                        <th>@Html.DisplayNameFor(model => model.First().EventName)</th>
+                        <th>@Html.DisplayNameFor(model => model.First().EventDate)</th>
+                        <th>@Html.DisplayNameFor(model => model.First().EventType)</th>
+                        <th>@Html.DisplayNameFor(model => model.First().EventDescription)</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -37,6 +38,7 @@
                         <tr>
                             <td>@Html.DisplayFor(modelItem => item.EventName)</td>
                             <td>@Html.DisplayFor(modelItem => item.EventDate)</td>
+                            <td>@Html.DisplayFor(modelItem => item.EventType)</td>
                             <td>@Html.DisplayFor(modelItem => item.EventDescription)</td>
                             <td>
                                 <a asp-action="Edit" asp-route-id="@item.EventID" class="btn btn-sm btn-outline-primary">Edit</a>

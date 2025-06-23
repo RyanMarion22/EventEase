@@ -15,11 +15,12 @@ namespace EventEase.Controllers
 
         public BookingsController(EventEaseContext context)
         {
-            _context = context;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         // GET: Bookings
-        public async Task<IActionResult> Index(string? searchEventName = null)
+        public async Task<IActionResult> Index(string? searchEventName = null, string? eventType = null,
+            DateTime? startDate = null, DateTime? endDate = null, bool? onlyAvailable = null)
         {
             var bookings = _context.Booking
                 .Include(b => b.Event)
@@ -32,7 +33,33 @@ namespace EventEase.Controllers
                 bookings = bookings.Where(b => b.Event.EventName != null && b.Event.EventName.Contains(searchEventName));
             }
 
+            if (!string.IsNullOrEmpty(eventType))
+            {
+                bookings = bookings.Where(b => b.Event.EventType == eventType);
+            }
+
+            // Use Booking.BookingDate for date range filter
+            if (startDate.HasValue && endDate.HasValue)
+            {
+                bookings = bookings.Where(b => b.BookingDate >= startDate && b.BookingDate <= endDate);
+            }
+
+            if (onlyAvailable == true)
+            {
+                bookings = bookings.Where(b =>
+                    !_context.Booking.Any(other => other.VenueID == b.VenueID &&
+                                                  other.BookingDate.Date == b.BookingDate.Date &&
+                                                  other.BookingID != b.BookingID)
+                );
+            }
+
+            ViewData["EventType"] = new SelectList(_context.Event.Select(e => e.EventType).Distinct());
             ViewData["CurrentFilter"] = searchEventName;
+            ViewData["CurrentEventType"] = eventType;
+            ViewData["CurrentStartDate"] = startDate?.ToString("yyyy-MM-dd");
+            ViewData["CurrentEndDate"] = endDate?.ToString("yyyy-MM-dd");
+            ViewData["CurrentOnlyAvailable"] = onlyAvailable;
+
             return View(await bookings.ToListAsync());
         }
 
@@ -66,12 +93,12 @@ namespace EventEase.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("BookingID,BookingDate,VenueID,EventID")] Booking booking)
         {
-            bool booked = _context.Booking.Any(b =>
+            if (await _context.Booking.AnyAsync(b =>
                 b.VenueID == booking.VenueID &&
-                b.BookingDate.Date == booking.BookingDate.Date);
-
-            if (booked)
+                b.BookingDate.Date == booking.BookingDate.Date))
+            {
                 ModelState.AddModelError("", "This venue is already booked on that date.");
+            }
 
             if (ModelState.IsValid)
             {
@@ -108,13 +135,13 @@ namespace EventEase.Controllers
             if (id != booking.BookingID)
                 return NotFound();
 
-            bool booked = _context.Booking.Any(b =>
+            if (await _context.Booking.AnyAsync(b =>
                 b.VenueID == booking.VenueID &&
                 b.BookingDate.Date == booking.BookingDate.Date &&
-                b.BookingID != booking.BookingID);
-
-            if (booked)
+                b.BookingID != booking.BookingID))
+            {
                 ModelState.AddModelError("", "This venue is already booked on that date.");
+            }
 
             if (ModelState.IsValid)
             {
@@ -125,7 +152,7 @@ namespace EventEase.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!BookingExists(booking.BookingID))
+                    if (!await BookingExists(booking.BookingID))
                         return NotFound();
                     else
                         throw;
@@ -138,7 +165,7 @@ namespace EventEase.Controllers
             return View(booking);
         }
 
-        // ✅ GET: Bookings/Delete/5
+        // GET: Bookings/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -155,7 +182,7 @@ namespace EventEase.Controllers
             return View(booking);
         }
 
-        // ✅ POST: Bookings/Delete/5
+        // POST: Bookings/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -166,13 +193,12 @@ namespace EventEase.Controllers
                 _context.Booking.Remove(booking);
                 await _context.SaveChangesAsync();
             }
-
             return RedirectToAction(nameof(Index));
         }
 
-        private bool BookingExists(int id)
+        private async Task<bool> BookingExists(int id)
         {
-            return _context.Booking.Any(e => e.BookingID == id);
+            return await _context.Booking.AnyAsync(e => e.BookingID == id);
         }
 
         // Search by Booking ID
